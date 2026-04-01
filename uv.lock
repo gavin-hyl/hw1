@@ -111,8 +111,8 @@ wheels = [
 ]
 
 [[package]]
-name = "cs336-basics"
-version = "1.0.6"
+name = "eecs148b-hw1"
+version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "einops" },

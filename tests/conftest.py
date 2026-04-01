@@ -1,11 +1,12 @@
+import os
+import pickle
+from pathlib import Path
 from typing import TypeVar
+
 import numpy as np
 import pytest
-import os
-from pathlib import Path
 import torch
 from torch import Tensor
-import pickle
 
 
 class DEFAULT:
@@ -193,8 +194,9 @@ def numpy_snapshot(request):
 
 @pytest.fixture
 def ts_state_dict(request):
-    from .common import FIXTURES_PATH
     import json
+
+    from .common import FIXTURES_PATH
 
     state_dict = torch.load(FIXTURES_PATH / "ts_tests" / "model.pt", map_location="cpu")
     config = json.load(open(FIXTURES_PATH / "ts_tests" / "model_config.json"))
@@ -294,6 +296,36 @@ def theta():
 @pytest.fixture
 def pos_ids(n_queries):
     return torch.arange(0, n_queries)
+
+
+@pytest.fixture
+def ffn_in_features(batch_size, n_queries, d_model, d_ff):
+    return torch.randn((batch_size, n_queries, d_model), generator=torch.Generator().manual_seed(104))
+
+
+@pytest.fixture
+def ffn_w1_weight(d_ff, d_model):
+    return torch.randn((d_ff, d_model), generator=torch.Generator().manual_seed(107))
+
+
+@pytest.fixture
+def ffn_w2_weight(d_model, d_ff):
+    return torch.randn((d_model, d_ff), generator=torch.Generator().manual_seed(108))
+
+
+@pytest.fixture
+def layernorm_in_features(batch_size, n_queries, d_model):
+    return torch.randn((batch_size, n_queries, d_model), generator=torch.Generator().manual_seed(204))
+
+
+@pytest.fixture
+def layernorm_weight(d_model):
+    return torch.randn((d_model,), generator=torch.Generator().manual_seed(207))
+
+
+@pytest.fixture
+def layernorm_bias(d_model):
+    return torch.randn((d_model,), generator=torch.Generator().manual_seed(208))
 
 
 # # Example usage:

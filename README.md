@@ -1,11 +1,4 @@
-# CS336 Spring 2025 Assignment 1: Basics
-
-For a full description of the assignment, see the assignment handout at
-[cs336_spring2025_assignment1_basics.pdf](./cs336_spring2025_assignment1_basics.pdf)
-
-If you see any issues with the assignment handout or code, please feel free to
-raise a GitHub issue or open a pull request with a fix.
-
+# EE/CS 148B Spring 2026 HW 1
 ## Setup
 
 ### Environment
@@ -31,7 +24,7 @@ To connect your implementation to the tests, complete the
 functions in [./tests/adapters.py](./tests/adapters.py).
 
 ### Download data
-Download the TinyStories data and a subsample of OpenWebText
+Download the TinyStories data
 
 ``` sh
 mkdir -p data
@@ -39,11 +32,6 @@ cd data
 
 wget https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-train.txt
 wget https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-valid.txt
-
-wget https://huggingface.co/datasets/stanford-cs336/owt-sample/resolve/main/owt_train.txt.gz
-gunzip owt_train.txt.gz
-wget https://huggingface.co/datasets/stanford-cs336/owt-sample/resolve/main/owt_valid.txt.gz
-gunzip owt_valid.txt.gz
 
 cd ..
 ```

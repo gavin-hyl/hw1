@@ -5,9 +5,7 @@
     "num_layers": 3,
     "num_heads": 4,
     "d_ff": 128,
-    "remove_rmsnorm": false,
-    "use_post_norm": false,
-    "remove_rope": false,
-    "rope_theta": 10000.0,
-    "ffn_type": null
+    "norm_type": "layernorm",
+    "position_embedding_type": "sinusoidal",
+    "ffn_type": "relu"
 }
