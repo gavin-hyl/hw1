@@ -27,7 +27,11 @@ def run_linear(
     Returns:
         Float[Tensor, "... d_out"]: The transformed output of your linear module.
     """
-    raise NotImplementedError
+    from eecs148b_hw1.transformer import Linear
+
+    linear = Linear(d_in, d_out)
+    linear.weight.data = weights
+    return linear(in_features)
 
 
 def run_embedding(
@@ -48,7 +52,11 @@ def run_embedding(
     Returns:
         Float[Tensor, "... d_model"]: Batch of embeddings returned by your Embedding layer.
     """
-    raise NotImplementedError
+    from eecs148b_hw1.transformer import Embedding
+
+    embedding = Embedding(vocab_size, d_model)
+    embedding.embeddings.data = weights
+    return embedding(token_ids)
 
 
 def run_ffn(
@@ -71,13 +79,12 @@ def run_ffn(
     Returns:
         Float[Tensor, "... d_model"]: Output embeddings of the same shape as the input embeddings.
     """
-    # Example:
-    # If your state dict keys match, you can use `load_state_dict()`
-    # ffn.load_state_dict({"fc1.weight": w1_weight, "fc2.weight": w2_weight})
-    # You can also manually assign the weights
-    # ffn.fc1.weight.data = w1_weight
-    # ffn.fc2.weight.data = w2_weight
-    raise NotImplementedError
+    from eecs148b_hw1.transformer import PositionwiseFeedForward
+
+    ffn = PositionwiseFeedForward(d_model, d_ff)
+    ffn.linear1.weight.data = w1_weight
+    ffn.linear2.weight.data = w2_weight
+    return ffn(in_features)
 
 
 def run_layernorm(
@@ -100,7 +107,12 @@ def run_layernorm(
     Returns:
         Float[Tensor, "... d_model"]: Tensor with the output of running LayerNorm on `in_features`.
     """
-    raise NotImplementedError
+    from eecs148b_hw1.transformer import LayerNorm
+
+    ln = LayerNorm(d_model, eps=eps)
+    ln.g.data = weight
+    ln.b.data = bias
+    return ln(in_features)
 
 
 def run_sinusoidal_pe(
@@ -109,7 +121,10 @@ def run_sinusoidal_pe(
     token_positions: Int[Tensor, " ... sequence_length"],
 ) -> Float[Tensor, " ... sequence_length d_model"]:
     """Return sinusoidal positional embeddings for the given token positions."""
-    raise NotImplementedError
+    from eecs148b_hw1.transformer import SinusoidalPositionalEncoding
+
+    spe = SinusoidalPositionalEncoding(d_model, max_seq_len)
+    return spe(token_positions)
 
 
 def run_scaled_dot_product_attention(
@@ -130,7 +145,9 @@ def run_scaled_dot_product_attention(
     Returns:
         Float[Tensor, " ... queries d_v"]: Output of SDPA
     """
-    raise NotImplementedError
+    from eecs148b_hw1.transformer import attention
+
+    return attention(Q, K, V, mask=mask)
 
 
 def run_multihead_self_attention(
@@ -164,7 +181,14 @@ def run_multihead_self_attention(
         Float[Tensor, " ... sequence_length d_out"]: Tensor with the output of running your optimized, batched multi-headed attention
         implementation with the given QKV projection weights and input features.
     """
-    raise NotImplementedError
+    from eecs148b_hw1.transformer import MultiheadSelfAttention
+
+    mha = MultiheadSelfAttention(d_model, num_heads)
+    mha.q_proj.weight.data = q_proj_weight
+    mha.k_proj.weight.data = k_proj_weight
+    mha.v_proj.weight.data = v_proj_weight
+    mha.o_proj.weight.data = o_proj_weight
+    return mha(in_features)
 
 
 def run_transformer_block(
@@ -233,7 +257,20 @@ def run_transformer_block(
         Float[Tensor, "batch sequence_length d_model"] Tensor with the output of
         running the Transformer block on the input features.
     """
-    raise NotImplementedError
+    from eecs148b_hw1.transformer import Transformer
+
+    block = Transformer(d_model, num_heads, d_ff)
+    block.mhsa.q_proj.weight.data = weights["attn.q_proj.weight"]
+    block.mhsa.k_proj.weight.data = weights["attn.k_proj.weight"]
+    block.mhsa.v_proj.weight.data = weights["attn.v_proj.weight"]
+    block.mhsa.o_proj.weight.data = weights["attn.output_proj.weight"]
+    block.layernorm1.g.data = weights["ln1.weight"]
+    block.layernorm1.b.data = weights["ln1.bias"]
+    block.ffn.linear1.weight.data = weights["ffn.fc1.weight"]
+    block.ffn.linear2.weight.data = weights["ffn.fc2.weight"]
+    block.layernorm2.g.data = weights["ln2.weight"]
+    block.layernorm2.b.data = weights["ln2.bias"]
+    return block(in_features)
 
 
 def run_transformer_lm(
@@ -317,7 +354,26 @@ def run_transformer_lm(
         Float[Tensor, "batch_size sequence_length vocab_size"]: Tensor with the predicted unnormalized
         next-word distribution for each token.
     """
-    raise NotImplementedError
+    from eecs148b_hw1.transformer import TransformerLM
+
+    model = TransformerLM(d_model, num_heads, d_ff, vocab_size, context_length, num_layers)
+    model.token_embedding.embeddings.data = weights["token_embeddings.weight"]
+    for i in range(num_layers):
+        layer = model.layers[i]
+        layer.mhsa.q_proj.weight.data = weights[f"layers.{i}.attn.q_proj.weight"]
+        layer.mhsa.k_proj.weight.data = weights[f"layers.{i}.attn.k_proj.weight"]
+        layer.mhsa.v_proj.weight.data = weights[f"layers.{i}.attn.v_proj.weight"]
+        layer.mhsa.o_proj.weight.data = weights[f"layers.{i}.attn.output_proj.weight"]
+        layer.layernorm1.g.data = weights[f"layers.{i}.ln1.weight"]
+        layer.layernorm1.b.data = weights[f"layers.{i}.ln1.bias"]
+        layer.ffn.linear1.weight.data = weights[f"layers.{i}.ffn.fc1.weight"]
+        layer.ffn.linear2.weight.data = weights[f"layers.{i}.ffn.fc2.weight"]
+        layer.layernorm2.g.data = weights[f"layers.{i}.ln2.weight"]
+        layer.layernorm2.b.data = weights[f"layers.{i}.ln2.bias"]
+    model.layernorm.g.data = weights["ln_final.weight"]
+    model.layernorm.b.data = weights["ln_final.bias"]
+    model.lm_head.weight.data = weights["lm_head.weight"]
+    return model(in_indices)
 
 
 def run_get_batch(
@@ -340,7 +396,9 @@ def run_get_batch(
         is the sampled input sequences, and the second tuple item is the corresponding
         language modeling labels.
     """
-    raise NotImplementedError
+    from eecs148b_hw1.training import get_batch
+
+    return get_batch(dataset, batch_size, context_length, device)
 
 
 def run_softmax(in_features: Float[Tensor, " ..."], dim: int) -> Float[Tensor, " ..."]:
@@ -356,7 +414,9 @@ def run_softmax(in_features: Float[Tensor, " ..."], dim: int) -> Float[Tensor, "
         Float[Tensor, "..."]: Tensor of with the same shape as `in_features` with the output of
         softmax normalizing the specified `dim`.
     """
-    raise NotImplementedError
+    from eecs148b_hw1.transformer import softmax
+
+    return softmax(in_features, dim=dim)
 
 
 def run_cross_entropy(
@@ -374,7 +434,9 @@ def run_cross_entropy(
     Returns:
         Float[Tensor, ""]: The average cross-entropy loss across examples.
     """
-    raise NotImplementedError
+    from eecs148b_hw1.training import cross_entropy_loss
+
+    return cross_entropy_loss(inputs, targets)
 
 
 def get_tokenizer(
@@ -397,7 +459,9 @@ def get_tokenizer(
     Returns:
         A BPE tokenizer that uses the provided vocab, merges, and special tokens.
     """
-    raise NotImplementedError
+    from eecs148b_hw1.bpe_tokenizer import Tokenizer
+
+    return Tokenizer(vocab, merges, special_tokens)
 
 
 def run_train_bpe(
@@ -427,4 +491,6 @@ def run_train_bpe(
                 representing that <token1> was merged with <token2>.
                 Merges are ordered by order of creation.
     """
-    raise NotImplementedError
+    from eecs148b_hw1.bpe_tokenizer import train_bpe
+
+    return train_bpe(str(input_path), vocab_size, special_tokens)
